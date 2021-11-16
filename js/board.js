@@ -101,6 +101,10 @@ function initBoard()
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.drawImage(bctx.canvas, 0, 0);
 
+    nextTask(settings[0], settings[1]);
+    // reset task text color
+    document.getElementById('currTask').style.color = 'white';
+
     console.log('boardInit');
 }
 
@@ -115,6 +119,7 @@ function clickEvent( e )
     xpos = e.clientX;
     ypos = e.clientY;
 
+    // Condition: click is within the bounds of the board
     if (xpos > boardBounds[0][0] && xpos < boardBounds[0][1] && ypos > boardBounds[1][0] && ypos < boardBounds[1][1] )
     {
         highlightSquare( xpos, ypos );
@@ -151,8 +156,10 @@ function clickEvent( e )
 
         if (correct) 
         {
-            nextTask(settings[0], settings[1]);
             console.log(currTask[0] + currTask[1]);
+        } else {
+
+            document.getElementById('currTask').style.color = 'rgb(234, 105, 98)';
         }
 
         console.log(correct);
@@ -167,7 +174,7 @@ function clickEvent( e )
 
 function touchEvent( e )
 {
-
+    // Get coordinates from touch object
     let newE = {clientX: e.touches[0].clientX, clientY: e.touches[0].clientY};
     clickEvent(newE);
 }
