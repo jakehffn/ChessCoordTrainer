@@ -11,6 +11,8 @@ var squareWidth = 0;
 
 var settings = [false, false];
 
+var isClickEvent = false;
+
 function init() 
 {
 
@@ -21,7 +23,7 @@ function init()
     window.addEventListener('mousedown', clickEvent);
     window.addEventListener('mouseup', initBoard);
 
-    window.addEventListener('touchstart', touchEvent);
+    window.addEventListener('touchstart', touchEvent, { passive: false });
     window.addEventListener('touchend', initBoard);
 
     load();
@@ -113,8 +115,7 @@ function load()
 async function clickEvent( e )
 {
 
-    window.removeEventListener('mousedown', clickEvent);
-    window.removeEventListener('touchstart', touchEvent);
+    console.log('click-event');
 
     xpos = e.clientX;
     ypos = e.clientY;
@@ -143,9 +144,17 @@ async function clickEvent( e )
         console.log('not on board');
 
     }
+}
 
-    window.addEventListener('mousedown', clickEvent);
-    window.addEventListener('touchstart', touchEvent);
+async function touchEvent( e )
+{
+    console.log('touch event');
+    
+    // Get coordinates from touch object
+    let newE = {clientX: e.touches[0].clientX, clientY: e.touches[0].clientY};
+    clickEvent(newE);
+
+    e.preventDefault();
 
 }
 
@@ -180,13 +189,6 @@ function isCorrect( xpos, ypos )
     }
 
     return (rank && file);
-}
-
-function touchEvent( e )
-{
-    // Get coordinates from touch object
-    let newE = {clientX: e.touches[0].clientX, clientY: e.touches[0].clientY};
-    clickEvent(newE);
 }
 
 function highlightSquare( xpos, ypos ) 
