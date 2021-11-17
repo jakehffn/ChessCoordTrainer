@@ -30,30 +30,43 @@ function init()
     nextTask(settings[0], settings[1]);
     setVisualTask();
     
-};
-
-function getTouches(event) {
-  return event.touches ||             // browser API
-         event.originalEvent.touches; // jQuery
-}                                                     
+};                                                  
 
 function initCanvas()
 {
-    const canvas = document.getElementById("canvas");
-    const width = canvas.width = window.innerWidth;
-    const height = canvas.height = window.innerHeight;
-
+    const canvas = document.getElementById('canvas');
     const bufferCanvas = document.createElement('canvas');
-    bufferCanvas.width = width;
-    bufferCanvas.height = height;
+
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    
+    // Get the device pixel ratio, falling back to 1.
+    var dpr = window.devicePixelRatio || 1;
+    // var dpr = 1;
+    
+    // Give the canvas pixel dimensions of their CSS
+    // size * the device pixel ratio.
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    bufferCanvas.width = width * dpr;
+    bufferCanvas.height = height * dpr;
+
+    ctx = canvas.getContext('2d');
     bctx = bufferCanvas.getContext('2d');
+    // Scale all drawing operations by the dpr, so you
+    // don't have to worry about the difference.
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    bctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    // ctx.scale(dpr, dpr);
+    // bctx.scale(dpr, dpr);
+
     bctx.fillStyle = 'rgb(41, 40, 40)';
     bctx.fillRect(0, 0, width, height);
 
-
-    ctx = canvas.getContext('2d');
     ctx.fillStyle = 'rgb(41, 40, 40)';
     ctx.fillRect(0, 0, width, height);
+
+    
 };
 
 function initBoard()
@@ -115,6 +128,8 @@ function load()
 async function clickEvent( e )
 {
 
+    window.removeEventListener('mousedown', clickEvent);
+
     console.log('click-event');
 
     xpos = e.clientX;
@@ -144,10 +159,14 @@ async function clickEvent( e )
         console.log('not on board');
 
     }
+
+    window.addEventListener('mousedown', clickEvent);
+    window.addEventListener('touchstart', touchEvent, { passive: false });
 }
 
 async function touchEvent( e )
 {
+    window.removeEventListener('touchstart', touchEvent, { passive: false });
     console.log('touch event');
     
     // Get coordinates from touch object
@@ -155,6 +174,8 @@ async function touchEvent( e )
     clickEvent(newE);
 
     e.preventDefault();
+
+    // window.addEventListener('touchstart', touchEvent, { passive: false });
 
 }
 
