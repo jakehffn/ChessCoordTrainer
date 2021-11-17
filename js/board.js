@@ -101,10 +101,6 @@ function initBoard()
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.drawImage(bctx.canvas, 0, 0);
 
-    nextTask(settings[0], settings[1]);
-    // reset task text color
-    document.getElementById('currTask').style.color = 'white';
-
     console.log('boardInit');
 }
 
@@ -114,8 +110,12 @@ function load()
     initBoard();
 }
 
-function clickEvent( e )
+async function clickEvent( e )
 {
+
+    window.removeEventListener('mousedown', clickEvent);
+    window.removeEventListener('touchstart', touchEvent);
+
     xpos = e.clientX;
     ypos = e.clientY;
 
@@ -124,45 +124,19 @@ function clickEvent( e )
     {
         highlightSquare( xpos, ypos );
 
-        file = false;
-        rank = false;
-
-        currFile = currTask[0];
-        currRank = currTask[1];
-
-        if (currFile == '') 
+        if (isCorrect(xpos, ypos)) 
         {
-            file = true;
+            nextTask(settings[0], settings[1]);
 
-        } else {
-
-            fileBounds = rankFileBounds.get(currFile);
-
-            file = (xpos > fileBounds[0] && xpos < fileBounds[1]);
-        }
-
-        if (currRank == '') 
-        {
-            rank = true;
-
-        } else {
-
-            rankBounds = rankFileBounds.get(currRank);
-
-            rank = (ypos > rankBounds[0] && ypos < rankBounds[1]);
-        }
-
-        correct = rank && file;
-
-        if (correct) 
-        {
-            console.log(currTask[0] + currTask[1]);
         } else {
 
             document.getElementById('currTask').style.color = 'rgb(234, 105, 98)';
+            await new Promise(r => setTimeout(r, 1000));
+            // reset task text color
+            document.getElementById('currTask').style.color = 'white';
+            nextTask(settings[0], settings[1]);
         }
-
-        console.log(correct);
+        
 
     } else {
 
@@ -170,6 +144,42 @@ function clickEvent( e )
 
     }
 
+    window.addEventListener('mousedown', clickEvent);
+    window.addEventListener('touchstart', touchEvent);
+
+}
+
+function isCorrect( xpos, ypos )
+{
+    file = false;
+    rank = false;
+
+    currFile = currTask[0];
+    currRank = currTask[1];
+
+    if (currFile == '') 
+    {
+        file = true;
+
+    } else {
+
+        fileBounds = rankFileBounds.get(currFile);
+
+        file = (xpos > fileBounds[0] && xpos < fileBounds[1]);
+    }
+
+    if (currRank == '') 
+    {
+        rank = true;
+
+    } else {
+
+        rankBounds = rankFileBounds.get(currRank);
+
+        rank = (ypos > rankBounds[0] && ypos < rankBounds[1]);
+    }
+
+    return (rank && file);
 }
 
 function touchEvent( e )
