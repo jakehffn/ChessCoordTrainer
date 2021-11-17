@@ -11,13 +11,8 @@ var squareWidth = 0;
 
 var settings = [false, false];
 
-var isClickEvent = false;
-
 function init() 
 {
-
-    // window.addEventListener("touchstart", handleTouchStart, false);
-    // window.addEventListener("touchmove", handleTouchMove, false);
     window.addEventListener('resize', load);
 
     window.addEventListener('mousedown', clickEvent);
@@ -40,25 +35,20 @@ function initCanvas()
     const width = window.innerWidth;
     const height = window.innerHeight;
     
-    // Get the device pixel ratio, falling back to 1.
     var dpr = window.devicePixelRatio || 1;
-    // var dpr = 1;
-    
-    // Give the canvas pixel dimensions of their CSS
-    // size * the device pixel ratio.
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    bufferCanvas.width = width * dpr;
-    bufferCanvas.height = height * dpr;
 
     ctx = canvas.getContext('2d');
     bctx = bufferCanvas.getContext('2d');
-    // Scale all drawing operations by the dpr, so you
-    // don't have to worry about the difference.
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    bctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    // ctx.scale(dpr, dpr);
-    // bctx.scale(dpr, dpr);
+
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+
+    bufferCanvas.width = width * dpr;
+    bufferCanvas.height = height * dpr;
+
+
+    scale = dpr;
+    bctx.scale(scale, scale);
 
     bctx.fillStyle = 'rgb(41, 40, 40)';
     bctx.fillRect(0, 0, width, height);
@@ -66,14 +56,15 @@ function initCanvas()
     ctx.fillStyle = 'rgb(41, 40, 40)';
     ctx.fillRect(0, 0, width, height);
 
-    
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
 };
 
 function initBoard()
 {
-    bctx.clearRect(0, 0, bctx.canvas.width, bctx.canvas.height);
+    bctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     bctx.fillStyle = 'rgb(41, 40, 40)';
-    bctx.fillRect(0, 0, bctx.canvas.width, bctx.canvas.height);
+    bctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
     // darkColor = 'rgb(41, 40, 40)'; // Grey
     // darkColor = 'rgb(211, 134, 155)'; // Purple
@@ -82,11 +73,11 @@ function initBoard()
     // darkColor = 'rgb(234, 105, 98)'; // Red
     lightColor = 'rgb(212, 190, 152)'; // Beige
 
-    margin = 60;
-    squareWidth = (Math.min(bctx.canvas.width, bctx.canvas.height - 2*margin))/8;
+    margin = window.innerHeight/10;
+    squareWidth = (Math.min(window.innerWidth, window.innerHeight - 2*margin))/8;
 
-    leftOffset = (bctx.canvas.width > bctx.canvas.height - 2*margin) ? (bctx.canvas.width - bctx.canvas.height + 2*margin)/2 : 0;
-    topOffset = (bctx.canvas.width > bctx.canvas.height - 2*margin) ? margin : (bctx.canvas.height - bctx.canvas.width)/2;
+    leftOffset = (window.innerWidth > window.innerHeight - 2*margin) ? (window.innerWidth - window.innerHeight + 2*margin)/2 : 0;
+    topOffset = (window.innerWidth > window.innerHeight - 2*margin) ? margin : (window.innerHeight - window.innerWidth)/2;
 
     boardBounds = [[leftOffset, leftOffset + 8*squareWidth], [topOffset, topOffset + 8*squareWidth]];
 
@@ -113,7 +104,7 @@ function initBoard()
         }
     }
 
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     ctx.drawImage(bctx.canvas, 0, 0);
 
     console.log('boardInit');
@@ -217,14 +208,16 @@ function highlightSquare( xpos, ypos )
     xIndex = Math.floor((xpos - boardBounds[0][0])/squareWidth);
     yIndex = Math.floor((ypos - boardBounds[1][0])/squareWidth);
 
-    ctx.fillStyle = 'rgb(11, 76, 128)';
+    bctx.fillStyle = 'rgb(11, 76, 128)';
 
     boxy = boardBounds[0][0] + squareWidth * xIndex
     boxx = boardBounds[1][0] + squareWidth * yIndex
 
-    ctx.globalAlpha = 0.5;
-    ctx.fillRect(boxy, boxx, squareWidth + 1, squareWidth + 1);
-    ctx.globalAlpha = 1.0;
+    bctx.globalAlpha = 0.5;
+    bctx.fillRect(boxy, boxx, squareWidth + 1, squareWidth + 1);
+    bctx.globalAlpha = 1.0;
+
+    ctx.drawImage(bctx.canvas, 0, 0);
 }
 
 function nextTask( fileOnly, rankOnly ) 
