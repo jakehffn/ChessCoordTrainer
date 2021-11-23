@@ -10,6 +10,22 @@ var boardBounds = [[0, 0],[0,0]];
 var squareWidth = 0;
 
 var settings = [false, false];
+var isGameLoop = false;
+var interval;
+
+var cSelect = 'rgb(75, 105, 205)'; // Selection highlight color
+var cDark = 'rgb(25, 92, 63)'; // Dark Green
+var cLight = 'rgb(212, 190, 152)'; // Beige
+var cError = 'rgb(234, 105, 98)'; // Red
+var cBackground = 'rgb(41, 40, 40)'; // Grey
+var cLighOverlay = 'white'; 
+var cDarkOverLay = 'black';
+
+const timer = document.getElementById('timer');
+const counter = document.getElementById('counter');
+const taskBox = document.getElementById('currTask');
+
+numCorrect = 0;
 
 function init() 
 {
@@ -21,11 +37,22 @@ function init()
     window.addEventListener('touchstart', touchEvent, { passive: false });
     window.addEventListener('touchend', initBoard);
 
+    // reset the height whenever the window's resized
+    window.addEventListener("resize", resetHeight);
+    // called to initially set the height.
+    resetHeight();
+
     load();
-    nextTask(settings[0], settings[1]);
-    setVisualTask();
     
-};                                                  
+
+
+};  
+
+function resetHeight(){
+    // reset the body height to that of the inner browser
+    document.body.style.height = window.innerHeight + "px";
+}
+
 
 function initCanvas()
 {
@@ -50,10 +77,10 @@ function initCanvas()
     scale = dpr;
     bctx.scale(scale, scale);
 
-    bctx.fillStyle = 'rgb(41, 40, 40)';
+    bctx.fillStyle = cBackground;
     bctx.fillRect(0, 0, width, height);
 
-    ctx.fillStyle = 'rgb(41, 40, 40)';
+    ctx.fillStyle = cBackground;
     ctx.fillRect(0, 0, width, height);
 
     canvas.style.width = width + 'px';
@@ -63,15 +90,8 @@ function initCanvas()
 function initBoard()
 {
     bctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-    bctx.fillStyle = 'rgb(41, 40, 40)';
+    bctx.fillStyle = cBackground;
     bctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-
-    // darkColor = 'rgb(41, 40, 40)'; // Grey
-    // darkColor = 'rgb(211, 134, 155)'; // Purple
-    darkColor = 'rgb(114, 41, 62)'; // Darker Purple
-    // darkColor = 'rgb(169, 182, 101)'; // Green
-    // darkColor = 'rgb(234, 105, 98)'; // Red
-    lightColor = 'rgb(212, 190, 152)'; // Beige
 
     margin = window.innerHeight/10;
     squareWidth = (Math.min(window.innerWidth, window.innerHeight - 2*margin))/8;
@@ -85,7 +105,7 @@ function initBoard()
     {
         for (var yy = 0; yy < 8; yy++)
         {
-            bctx.fillStyle = ((xx + yy) % 2 == 1) ? darkColor : lightColor;
+            bctx.fillStyle = ((xx + yy) % 2 == 1) ? cDark : cLight;
 
             xpos = leftOffset + xx*squareWidth;
             ypos = topOffset + yy*squareWidth;
@@ -106,8 +126,6 @@ function initBoard()
 
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     ctx.drawImage(bctx.canvas, 0, 0);
-
-    console.log('boardInit');
 }
 
 function load() 
@@ -121,35 +139,63 @@ async function clickEvent( e )
 
     window.removeEventListener('mousedown', clickEvent);
 
-    console.log('click-event');
+    if (!isGameLoop) {
 
-    xpos = e.clientX;
-    ypos = e.clientY;
-
-    // Condition: click is within the bounds of the board
-    if (xpos > boardBounds[0][0] && xpos < boardBounds[0][1] && ypos > boardBounds[1][0] && ypos < boardBounds[1][1] )
-    {
-        highlightSquare( xpos, ypos );
-
-        if (isCorrect(xpos, ypos)) 
-        {
-            nextTask(settings[0], settings[1]);
-
-        } else {
-
-            document.getElementById('currTask').style.color = 'rgb(234, 105, 98)';
-            await new Promise(r => setTimeout(r, 1000));
-            // reset task text color
-            document.getElementById('currTask').style.color = 'white';
-            nextTask(settings[0], settings[1]);
-        }
-        
+        taskBox.style.fontSize = 'min(calc(50vh), 60vw)';
+        taskBox.style.top = 'calc(50vh - calc(1.1*min(calc(50vh), 60vw)))'
+        numCorrect = 0;
+        gameLoop();
+        nextTask(settings[0], settings[1]);
+        setVisualTask();
 
     } else {
 
-        console.log('not on board');
+        xpos = e.clientX;
+        ypos = e.clientY;
+
+        selectedSquare = toSquareCoords(xpos, ypos);
+
+        // Condition: click is within the bounds of the board
+        if (selectedSquare != -1)
+        {
+
+            if (isCorrect(selectedSquare)) 
+            {
+                highlightSquare(selectedSquare, cSelect);
+
+                numCorrect += 1;
+
+                nextTask(settings[0], settings[1]);
+
+            } else {
+
+                window.removeEventListener('mouseup', initBoard);
+                window.removeEventListener('touchend', initBoard);
+
+                highlightSquare(selectedSquare, cError);
+                highlightSquare(currTask, cSelect);
+
+                taskBox.style.color = cError;
+                await new Promise(r => setTimeout(r, 1000));
+                // reset task text color
+                taskBox.style.color = cLighOverlay;
+                nextTask(settings[0], settings[1]);
+
+                initBoard();
+
+                window.addEventListener('mouseup', initBoard);
+                window.addEventListener('touchend', initBoard);
+            }
+            
+
+        } else {
+
+
+        }
 
     }
+
+    
 
     window.addEventListener('mousedown', clickEvent);
     window.addEventListener('touchstart', touchEvent, { passive: false });
@@ -158,7 +204,6 @@ async function clickEvent( e )
 async function touchEvent( e )
 {
     window.removeEventListener('touchstart', touchEvent, { passive: false });
-    console.log('touch event');
     
     // Get coordinates from touch object
     let newE = {clientX: e.touches[0].clientX, clientY: e.touches[0].clientY};
@@ -170,51 +215,61 @@ async function touchEvent( e )
 
 }
 
-function isCorrect( xpos, ypos )
-{
-    file = false;
-    rank = false;
+async function gameLoop() {
 
-    currFile = currTask[0];
-    currRank = currTask[1];
+    isGameLoop = true;
 
-    if (currFile == '') 
-    {
-        file = true;
-
-    } else {
-
-        fileBounds = rankFileBounds.get(currFile);
-
-        file = (xpos > fileBounds[0] && xpos < fileBounds[1]);
-    }
-
-    if (currRank == '') 
-    {
-        rank = true;
-
-    } else {
-
-        rankBounds = rankFileBounds.get(currRank);
-
-        rank = (ypos > rankBounds[0] && ypos < rankBounds[1]);
-    }
-
-    return (rank && file);
+    interval = setInterval("gameUpdates()", 100);
 }
 
-function highlightSquare( xpos, ypos ) 
-{
-    xIndex = Math.floor((xpos - boardBounds[0][0])/squareWidth);
-    yIndex = Math.floor((ypos - boardBounds[1][0])/squareWidth);
+async function gameUpdates() {
 
-    bctx.fillStyle = 'rgb(11, 76, 128)';
+    newTime = parseFloat(timer.innerText) - .1;
+    timer.innerText = newTime.toFixed(1);
+
+    counter.innerText = numCorrect;
+
+    if (timer.innerText <= 0.0) {
+
+        timer.innerText = 30.0;
+
+        clearInterval(interval);
+        isGameLoop = false;
+
+        taskBox.style.top = 'calc(50vh - calc(.6*min(calc(50vh), 60vw)))'
+        taskBox.style.fontSize = 'min(calc(26vh), 36vw)';
+        taskBox.innerText = 'End';
+
+        // dont allow restart for some time
+        window.removeEventListener('touchstart', touchEvent, { passive: false });
+        window.removeEventListener('mousedown', clickEvent);
+
+        await new Promise(r => setTimeout(r, 2000));
+
+        window.addEventListener('mousedown', clickEvent);
+        window.addEventListener('touchstart', touchEvent, { passive: false });
+        taskBox.innerText = 'Start!';
+    }
+}
+
+function isCorrect( squareCoord )
+{
+    return ((squareCoord[0] == currTask[0] || currTask[0] == '') && 
+        (squareCoord[1] == currTask[1] || currTask[1] == ''));
+}
+
+function highlightSquare( squareCoord, highlightColor) 
+{
+    xIndex = files.indexOf(squareCoord[0]);
+    yIndex = ranks.indexOf(squareCoord[1]);
+
+    bctx.fillStyle = highlightColor;
 
     boxy = boardBounds[0][0] + squareWidth * xIndex
     boxx = boardBounds[1][0] + squareWidth * yIndex
 
     bctx.globalAlpha = 0.5;
-    bctx.fillRect(boxy, boxx, squareWidth + 1, squareWidth + 1);
+    bctx.fillRect(boxy, boxx, squareWidth, squareWidth);
     bctx.globalAlpha = 1.0;
 
     ctx.drawImage(bctx.canvas, 0, 0);
@@ -255,6 +310,24 @@ function nextTask( fileOnly, rankOnly )
 
     setVisualTask();
 
+}
+
+// Convert x/y coordinates to board coordinates
+function toSquareCoords(xpos, ypos) {
+
+    // Condition: click is within the bounds of the board
+    if (xpos > boardBounds[0][0] && xpos < boardBounds[0][1] && ypos > boardBounds[1][0] && ypos < boardBounds[1][1] )
+    {
+
+        xIndex = Math.floor((xpos - boardBounds[0][0])/squareWidth);
+        yIndex = Math.floor((ypos - boardBounds[1][0])/squareWidth);
+
+        return [files[xIndex], ranks[yIndex]];
+
+    } else {
+
+        return -1;
+    }
 }
 
 function setVisualTask()
