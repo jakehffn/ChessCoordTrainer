@@ -26,18 +26,16 @@ canvas {
     position: absolute;
 
     width: 100%;
-    /* top: calc(50% - calc(min(calc(60vh - 60px), 60vw)/2)); */
-    top: calc(50vh - calc(.6*min(calc(50vh), 60vw)));
+
+    top: 50%;
+    transform: translate(0, -100%);
+
     text-align: center;
 
-    /* font-size: min(calc(60vh - 60px), 60vw); */
     font-size: min(calc(26vh), 36vw);
 
-    /* color: rgb(41, 40, 40); */
-    /* color: rgb(168, 152, 123); */
     color: white;
     opacity: 0.6;
-    /* font-family: 'Roboto Mono', sans-serif; */
     font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -45,19 +43,17 @@ canvas {
     position: absolute;
 
     width: auto;
-    top: max(calc(50vh - 52vw), 10vh);
+
+    top: 50%;
+    transform: translate(0, -300%);
+
     left: max(15vw, calc(50vw - 25vh));
     text-align: center;
 
     font-size: min(calc(10vh), 15vw);
 
-    
-
-    /* color: rgb(41, 40, 40); */
-    /* color: rgb(168, 152, 123); */
     color: white;
     opacity: 0.6;
-    /* font-family: 'Roboto Mono', sans-serif; */
     font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -65,16 +61,16 @@ canvas {
     position: absolute;
 
     width: auto;
-    top: max(calc(50vh - 52vw), 10vh);
+    
+    top: 50%;
+    transform: translate(0, -300%);
+
     right: max(15vw, calc(50vw - 25vh));
     text-align: center;
 
     font-size: min(calc(10vh), 15vw);
 
-    /* color: rgb(41, 40, 40); */
-    /* color: rgb(168, 152, 123); */
     color: white;
     opacity: 0.6;
-    /* font-family: 'Roboto Mono', sans-serif; */
     font-family: Arial, Helvetica, sans-serif;
 }

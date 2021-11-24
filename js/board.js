@@ -37,9 +37,9 @@ function init()
     window.addEventListener('touchstart', touchEvent, { passive: false });
     window.addEventListener('touchend', initBoard);
 
-    // reset the height whenever the window's resized
+
+    window.addEventListener("deviceorientation", initBoard, true);
     window.addEventListener("resize", resetHeight);
-    // called to initially set the height.
     resetHeight();
 
     load();
@@ -142,7 +142,6 @@ async function clickEvent( e )
     if (!isGameLoop) {
 
         taskBox.style.fontSize = 'min(calc(50vh), 60vw)';
-        taskBox.style.top = 'calc(50vh - calc(1.1*min(calc(50vh), 60vw)))'
         numCorrect = 0;
         gameLoop();
         nextTask(settings[0], settings[1]);
@@ -236,7 +235,6 @@ async function gameUpdates() {
         clearInterval(interval);
         isGameLoop = false;
 
-        taskBox.style.top = 'calc(50vh - calc(.6*min(calc(50vh), 60vw)))'
         taskBox.style.fontSize = 'min(calc(26vh), 36vw)';
         taskBox.innerText = 'End';
 
